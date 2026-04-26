@@ -28,6 +28,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install SCA tool - pip-audit
+        shell: powershell
+        run: |
+          python -m pip install pip-audit
+
+      - name: Run SCA - pip-audit
+        shell: powershell
+        run: |
+          pip-audit -r requirements.txt --format json --output pip-audit-report.json
+          pip-audit -r requirements.txt
+          
+      - name: Upload SCA report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-sca-report
+          path: pip-audit-report.json
+          
       - name: Run SonarQube scan
         shell: powershell
         run: |
