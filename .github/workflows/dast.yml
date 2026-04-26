@@ -1,4 +1,4 @@
-name: DAST - OWASP ZAP
+name: DAST - OWASP ZAP Pipeline
 
 on:
   workflow_dispatch:
