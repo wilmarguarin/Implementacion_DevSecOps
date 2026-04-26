@@ -71,41 +71,66 @@ The database is automatically initialized on first run.
 
 ## DevSecOps Integration
 
-This project implements a DevSecOps pipeline using GitHub Actions.
+TThis project implements a DevSecOps pipeline using GitHub Actions to integrate automated security controls into the development lifecycle.
 
-### SAST
-SonarQube is used for static analysis. The pipeline fails if the Quality Gate is not met.
+## SAST - Static Application Security Testing
 
-### SCA
-pip-audit is used for dependency analysis. The pipeline fails if vulnerabilities are found.
+Static analysis is performed using SonarQube.
 
-### DAST
-OWASP ZAP is used for dynamic analysis against the deployed application.
+Detects vulnerabilities and security issues in source code
+Applies a Quality Gate based on severity
+
+The pipeline fails if the Quality Gate conditions are not met.
+
+## SCA - Software Composition Analysis
+
+Dependency analysis is performed using:
+pip-audit
+
+- Identifies known vulnerabilities in third-party dependencies
+- Uses public vulnerability databases
+- The pipeline fails if vulnerable dependencies are detected
+
+## DAST - Dynamic Application Security Testing
+
+Dynamic analysis is performed using OWASP ZAP against the deployed application.
+
+- Scans the running application
+- Detects runtime vulnerabilities (headers, misconfigurations, etc.)
+
+The pipeline fails if vulnerabilities are detected..
 
 ---
 
 ## Deployment (Render)
 
-Public URL: https://implementacion-devsecops.onrender.com
+The application is deployed on Render and publicly accessible at:
 
-### Configuration
+https://implementacion-devsecops.onrender.com
 
-Build:
+## Configuration
+
+Build command:
 pip install -r requirements.txt
 
-Start:
+Start command:
 gunicorn main:app --bind 0.0.0.0:$PORT
 
-### Deployment Control
+## Deployment Control (DevSecOps)
 
-Auto-Deploy is configured as:
-After CI Checks Pass
+Deployment is configured as:
+Auto-Deploy: After CI Checks Pass
 
-This ensures deployment only happens if all security checks pass.
+This ensures:
+
+The application is deployed only if all CI/CD checks pass
+Deployments are blocked when security vulnerabilities are detected
+
+This integrates security validation directly into the deployment process.
 
 ---
 
-## Docker (Optional)
+## Docker Deployment (Optional)
 
 Build:
 docker build -t novacorp-app .
@@ -116,36 +141,50 @@ docker run -p 10000:10000 novacorp-app
 Access:
 http://localhost:10000
 
+## Docker Design Decisions
+
+The Dockerfile was designed following best practices:
+
+Use of a lightweight base image (python:3.11-slim)
+Separation of dependency installation to optimize build caching
+Use of --no-cache-dir to reduce image size
+Execution using Gunicorn for production readiness
+Environment-based configuration for portability
+
+This approach improves reproducibility, portability, and security.
+
 ---
 
 ## Docker CI Validation
 
-The project includes a Dockerfile to containerize the Flask application.
+A GitHub Actions workflow validates the Docker image build on every push.
 
-A GitHub Actions workflow validates the Docker image build on every push to the main branch.
-
-Workflow:
+Workflow location:
 
 .github/workflows/docker.yml
 
-The Docker pipeline performs:
+Pipeline steps:
 
-1. Repository checkout.
-2. Docker Buildx setup.
-3. Docker image build validation.
+- Repository checkout
+- Docker Buildx setup
+- Docker image build validation
 
-The image is not pushed to a registry in this academic setup. The objective is to verify that the application can be packaged and executed in a reproducible containerized environment.
+The image is not published to a registry in this setup. The objective is to ensure that the application can be reliably packaged and executed in a containerized environment.
 
 ---
 
 ## Security Coverage
 
-- SAST → Source code analysis  
-- SCA  → Dependency analysis  
-- DAST → Runtime analysis  
+This project implements a multi-layer security approach:
+
+- SAST → Source code analysis
+- SCA → Dependency analysis
+- DAST → Runtime analysis 
 
 ---
 
 ## Summary
 
-This project demonstrates a complete DevSecOps implementation with automated security checks and controlled deployment.
+This project demonstrates a complete DevSecOps implementation by integrating automated security analysis, controlled deployment, and containerization practices.
+
+Security checks are enforced throughout the CI/CD pipeline, ensuring that only validated and secure code is deployed.
