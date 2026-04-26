@@ -30,14 +30,32 @@ The database is automatically initialized on first run.
 
 ## Project Structure
 
+```
 .
-├── main.py
-├── server.py
+├── Dockerfile               
+├── main.py                 # Entry point
+├── server.py               # Flask app configuration
 ├── db/
+│   └── \_\_init\_\_.py         # Database initialization and helpers
 ├── routes/
+│   ├── auth.py             # Login/logout
+│   ├── companies.py        # Company views, dashboard, search
+│   ├── companies\_admin.py  # Admin company management
+│   ├── users\_admin.py      # Admin user management
+│   └── profile.py          # User profiles
 ├── templates/
+│   ├── base.html           # Shared layout
+│   ├── dashboard.html      # Main dashboard
+│   ├── auth/               # Login page
+│   ├── companies/          # Company pages
+│   ├── admin/              # Admin panels
+│   ├── profile/            # User profile pages
+│   └── errors/             # 404, 403 pages
 ├── static/
+│   └── css/style.css       # Custom styles
 └── requirements.txt
+```
+
 
 ---
 
@@ -97,6 +115,26 @@ docker run -p 10000:10000 novacorp-app
 
 Access:
 http://localhost:10000
+
+---
+
+## Docker CI Validation
+
+The project includes a Dockerfile to containerize the Flask application.
+
+A GitHub Actions workflow validates the Docker image build on every push to the main branch.
+
+Workflow:
+
+.github/workflows/docker.yml
+
+The Docker pipeline performs:
+
+1. Repository checkout.
+2. Docker Buildx setup.
+3. Docker image build validation.
+
+The image is not pushed to a registry in this academic setup. The objective is to verify that the application can be packaged and executed in a reproducible containerized environment.
 
 ---
 
