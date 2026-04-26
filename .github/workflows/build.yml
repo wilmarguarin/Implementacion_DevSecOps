@@ -1,4 +1,4 @@
-name: SonarQube Analyze
+name: DevSecOps Pipeline
 
 on:
   push:
