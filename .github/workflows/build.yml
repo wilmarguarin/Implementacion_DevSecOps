@@ -58,3 +58,5 @@ jobs:
             -D"sonar.exclusions=**/__pycache__/**,**/*.pyc,**/venv/**,**/.venv/**,**/node_modules/**,**/static/**" `
             -D"sonar.host.url=${{ secrets.SONAR_HOST_URL }}" `
             -D"sonar.token=${{ secrets.SONAR_TOKEN }}"
+            -D"sonar.qualitygate.wait=true" `
+            -D"sonar.qualitygate.timeout=300"
