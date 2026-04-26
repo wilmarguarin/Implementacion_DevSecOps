@@ -28,15 +28,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run SonarQube scan
+          - name: Run SonarQube scan
         shell: powershell
         run: |
           & "C:\sonar-scanner\bin\sonar-scanner.bat" `
-            -D"sonar.projectKey=sonar.projectKey=wilmarguarin_Implementacion_DevSecOps_a958c060-abcc-49f0-9d6c-fc1f9853db09" `
-            -D"sonar.projectName=Implementacion_DevSecOps" `
-            -D"sonar.sources=." `
-            -D"sonar.sourceEncoding=UTF-8" `
-            -D"sonar.python.version=3.11" `
-            -D"sonar.exclusions=**/__pycache__/**,**/*.pyc,**/venv/**,**/.venv/**,**/node_modules/**,**/static/**" `
-            -D"sonar.host.url=${{ secrets.SONAR_HOST_URL }}" `
-            -D"sonar.token=${{ secrets.SONAR_TOKEN }}"
+            "-Dsonar.projectKey=wilmarguarin_Implementacion_DevSecOps_a958c060-abcc-49f0-9d6c-fc1f9853db09" `
+            "-Dsonar.projectName=Implementacion_DevSecOps" `
+            "-Dsonar.sources=." `
+            "-Dsonar.sourceEncoding=UTF-8" `
+            "-Dsonar.python.version=3.11" `
+            "-Dsonar.exclusions=**/__pycache__/**,**/*.pyc,**/venv/**,**/.venv/**,**/node_modules/**,**/static/**" `
+            "-Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}" `
+            "-Dsonar.token=${{ secrets.SONAR_TOKEN }}"
