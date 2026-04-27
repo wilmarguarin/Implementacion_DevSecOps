@@ -13,18 +13,20 @@
 <h2>Register New Company</h2>
 <div class="card mt-3">
     <div class="card-body">
-        <form method="post">
+        <form method="post" action="/companies/register">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
             <div class="mb-3">
-                <label class="form-label">Company Name</label>
-                <input class="form-control" type="text" name="company_name" required>
+                <label for="company_name" class="form-label">Company Name</label>
+                <input id="company_name" class="form-control" type="text" name="company_name" required>
             </div>
             <div class="mb-3">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" name="description" rows="3" required></textarea>
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description" class="form-control" name="description" rows="3" required></textarea>
             </div>
             <div class="mb-3">
-                <label class="form-label">Owner (username)</label>
-                <input class="form-control" type="text" name="owner" required>
+                <label for="owner" class="form-label">Owner (username)</label>
+                <input id="owner" class="form-control" type="text" name="owner" required>
             </div>
             <button class="btn btn-success" type="submit"><i class="bi bi-plus-circle"></i> Register</button>
             <a href="/companies" class="btn btn-secondary">Cancel</a>

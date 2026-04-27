@@ -36,11 +36,11 @@
             <div class="card-body">
                 <h5 class="card-title">
                     <a href="/companies/{{ company['id'] }}" class="text-decoration-none">
-                        {{ company['name'] | safe }}
+                        {{ company['name'] }}
                     </a>
                 </h5>
                 {% if company.get('description') %}
-                <p class="card-text text-muted small">{{ company['description']|safe|truncate(80) }}</p>
+                <p class="card-text text-muted small">{{ company['description']|truncate(80) }}</p>
                 {% endif %}
                 <span class="badge bg-info badge-comments">
                     <i class="bi bi-chat-dots"></i> {{ company['comment_count'] }} comments
@@ -52,6 +52,7 @@
                     {% if session['role'] == 'admin' %}
                         <a href="/companies/{{ company['id'] }}/edit" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
                         <form method="post" action="/admin/companies/delete" class="d-inline" onsubmit="return confirm('Delete this company?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="company" value="{{ company['id'] }}">
                             <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
                         </form>
