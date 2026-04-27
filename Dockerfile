@@ -17,8 +17,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar el resto del código
 COPY . .
 
+# Crear usuario no privilegiado y asignar permisos
+RUN adduser --disabled-password --gecos "" appuser \
+    && chown -R appuser:appuser /app
+
+# Ejecutar la aplicación con usuario no root
+USER appuser
+
 # Puerto expuesto
 EXPOSE 10000
 
-# Comando de arranque (usando variable PORT)
+# Comando de arranque
 CMD ["sh", "-c", "gunicorn main:app --bind 0.0.0.0:${PORT:-10000}"]
