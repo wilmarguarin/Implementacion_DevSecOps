@@ -11,14 +11,14 @@ LOGIN_URL = '/login'
 LOGIN_TEMPLATE = 'auth/login.html'
 
 
-# Función para validar que la URL de redirección es segura
+# Validación de redirecciones seguras (evita open redirect)
 def is_safe_redirect(target):
     if not target:
         return False
 
     parsed = urlparse(target)
 
-    # Solo permite redirecciones internas relativas
+    # Solo permite rutas relativas internas
     return not parsed.netloc and target.startswith('/')
 
 
@@ -48,10 +48,12 @@ def login_submit():
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '')
 
+    # Validación básica de entrada
     if not username or not password:
         flash("Username and password are required.", "danger")
         return render_template(LOGIN_TEMPLATE, next_url=next_url)
 
+    # Conexión a base de datos
     conn = get_users_connection()
 
     try:
@@ -62,7 +64,23 @@ def login_submit():
     finally:
         conn.close()
 
-    if user and verify_password(user['password'], password):
+    # 🔒 Validación segura de contraseña (evita 500)
+    is_valid_password = False
+
+    try:
+        if user:
+            is_valid_password = verify_password(user['password'], password)
+    except ValueError as e:
+        # Error típico: hash incompatible (ej: scrypt)
+        app.logger.error("Password verification failed: %s", e)
+        is_valid_password = False
+    except Exception as e:
+        # Cualquier otro error inesperado
+        app.logger.error("Unexpected login error: %s", e)
+        is_valid_password = False
+
+    # Login exitoso
+    if user and is_valid_password:
         session.clear()
         session['user_id'] = user['id']
         session['username'] = user['username']
@@ -72,6 +90,7 @@ def login_submit():
 
         return redirect(next_url)
 
+    # Respuesta controlada (evita enumeración de usuarios)
     flash("Invalid username or password", "danger")
     return render_template(LOGIN_TEMPLATE, next_url=next_url)
 
