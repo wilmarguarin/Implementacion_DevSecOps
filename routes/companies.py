@@ -7,6 +7,7 @@ LOGIN_URL = '/login'
 HOME_URL = '/'
 COMPANIES_URL = '/companies'
 REGISTER_COMPANY_TEMPLATE = 'companies/register_company.html'
+EDIT_COMPANY_TEMPLATE = 'companies/edit_company.html'
 ERROR_404_TEMPLATE = 'errors/404.html'
 ERROR_403_TEMPLATE = 'errors/403.html'
 
@@ -214,8 +215,31 @@ def register_company():
     return redirect(COMPANIES_URL)
 
 
-@app.route('/companies/<int:company_id>/edit', methods=['GET', 'POST'])
-def edit_company(company_id):
+@app.get('/companies/<int:company_id>/edit')
+def show_edit_company_form(company_id):
+    if 'username' not in session:
+        return redirect(HOME_URL)
+
+    conn = get_data_connection()
+    try:
+        company = conn.execute(
+            "SELECT * FROM companies WHERE id = ?",
+            (company_id,)
+        ).fetchone()
+
+        if not company:
+            return render_template(ERROR_404_TEMPLATE), 404
+
+        if session.get('role') != 'admin' and session.get('username') != company['owner']:
+            return render_template(ERROR_403_TEMPLATE), 403
+    finally:
+        conn.close()
+
+    return render_template(EDIT_COMPANY_TEMPLATE, company=company)
+
+
+@app.post('/companies/<int:company_id>/edit')
+def update_company(company_id):
     if 'username' not in session:
         return redirect(HOME_URL)
 
@@ -232,32 +256,29 @@ def edit_company(company_id):
         if session.get('role') != 'admin' and session.get('username') != company['owner']:
             return render_template(ERROR_403_TEMPLATE), 403
 
-        if request.method == 'POST':
-            new_name = request.form.get('company_name', '').strip()
-            new_description = request.form.get('description', '').strip()
+        new_name = request.form.get('company_name', '').strip()
+        new_description = request.form.get('description', '').strip()
 
-            if not new_name:
-                flash("Company name is required.", "danger")
-                return redirect(f'/companies/{company_id}/edit')
+        if not new_name:
+            flash("Company name is required.", "danger")
+            return redirect(f'/companies/{company_id}/edit')
 
-            existing_company = conn.execute(
-                "SELECT id FROM companies WHERE name = ? AND id != ?",
-                (new_name, company_id)
-            ).fetchone()
+        existing_company = conn.execute(
+            "SELECT id FROM companies WHERE name = ? AND id != ?",
+            (new_name, company_id)
+        ).fetchone()
 
-            if existing_company:
-                flash("Company already exists. Please try with a different name.", "danger")
-                return redirect(f'/companies/{company_id}/edit')
+        if existing_company:
+            flash("Company already exists. Please try with a different name.", "danger")
+            return redirect(f'/companies/{company_id}/edit')
 
-            conn.execute(
-                "UPDATE companies SET name = ?, description = ? WHERE id = ?",
-                (new_name, new_description, company_id)
-            )
-            conn.commit()
-
-            flash("Company updated successfully.", "success")
-            return redirect(COMPANIES_URL)
+        conn.execute(
+            "UPDATE companies SET name = ?, description = ? WHERE id = ?",
+            (new_name, new_description, company_id)
+        )
+        conn.commit()
     finally:
         conn.close()
 
-    return render_template('companies/edit_company.html', company=company)
+    flash("Company updated successfully.", "success")
+    return redirect(COMPANIES_URL)
