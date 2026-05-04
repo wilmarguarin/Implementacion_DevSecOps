@@ -36,12 +36,12 @@ The database is automatically initialized on first run.
 ├── main.py                 # Entry point
 ├── server.py               # Flask app configuration
 ├── db/
-│   └── \_\_init\_\_.py         # Database initialization and helpers
+│    _init_.py             # Database initialization and helpers
 ├── routes/
 │   ├── auth.py             # Login/logout
 │   ├── companies.py        # Company views, dashboard, search
-│   ├── companies\_admin.py  # Admin company management
-│   ├── users\_admin.py      # Admin user management
+│   ├── companies_admin.py  # Admin company management
+│   ├── users_admin.py      # Admin user management
 │   └── profile.py          # User profiles
 ├── templates/
 │   ├── base.html           # Shared layout
@@ -133,13 +133,13 @@ This integrates security validation directly into the deployment process.
 ## Docker Deployment (Optional)
 
 Build:
-docker build -t novacorp-app .
+docker build -t novacorp-app:test .
 
 Run:
-docker run -p 10000:10000 novacorp-app
+docker run --rm -p 10000:10000 -e PORT=10000 -e SECRET_KEY=test-secret-key novacorp-app:test
 
 Access:
-http://localhost:10000
+http://localhost:10000/login
 
 ## Docker Design Decisions
 
