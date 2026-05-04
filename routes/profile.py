@@ -2,11 +2,19 @@ from flask import request, redirect, render_template, session, flash
 from server import app
 from db import get_users_connection, get_data_connection
 
+# Constantes
+LOGIN_URL = '/login'
+DASHBOARD_URL = '/dashboard'
+PROFILE_EDIT_URL = '/profile/edit'
+ERROR_404_TEMPLATE = 'errors/404.html'
+PROFILE_VIEW_TEMPLATE = 'profile/view.html'
+PROFILE_EDIT_TEMPLATE = 'profile/edit.html'
+
 
 @app.route('/profile/<int:user_id>')
 def user_profile(user_id):
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_URL)
 
     conn_u = get_users_connection()
     try:
@@ -18,7 +26,7 @@ def user_profile(user_id):
         conn_u.close()
 
     if not user:
-        return render_template('errors/404.html'), 404
+        return render_template(ERROR_404_TEMPLATE), 404
 
     conn_d = get_data_connection()
     try:
@@ -34,7 +42,7 @@ def user_profile(user_id):
         conn_d.close()
 
     return render_template(
-        'profile/view.html',
+        PROFILE_VIEW_TEMPLATE,
         profile_user=user,
         comments=comments
     )
@@ -43,7 +51,7 @@ def user_profile(user_id):
 @app.get('/profile/edit')
 def edit_profile_form():
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_URL)
 
     conn = get_users_connection()
     try:
@@ -55,22 +63,22 @@ def edit_profile_form():
         conn.close()
 
     if not user:
-        return render_template('errors/404.html'), 404
+        return render_template(ERROR_404_TEMPLATE), 404
 
-    return render_template('profile/edit.html', user=user)
+    return render_template(PROFILE_EDIT_TEMPLATE, user=user)
 
 
 @app.post('/profile/edit')
 def update_profile():
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_URL)
 
     new_username = request.form.get('username', '').strip()
     role = request.form.get('role', session.get('role'))
 
     if not new_username:
         flash("Username is required.", "danger")
-        return redirect('/profile/edit')
+        return redirect(PROFILE_EDIT_URL)
 
     conn = get_users_connection()
     try:
@@ -80,7 +88,7 @@ def update_profile():
         ).fetchone()
 
         if not user:
-            return render_template('errors/404.html'), 404
+            return render_template(ERROR_404_TEMPLATE), 404
 
         conn.execute(
             "UPDATE users SET username = ?, role = ? WHERE username = ?",
@@ -94,4 +102,4 @@ def update_profile():
     session['role'] = role
 
     flash("Profile updated successfully.", "success")
-    return redirect('/dashboard')
+    return redirect(DASHBOARD_URL)

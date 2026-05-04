@@ -5,6 +5,7 @@ from db import get_data_connection
 # Constantes
 ERROR_403_TEMPLATE = 'errors/403.html'
 ADMIN_COMPANIES_URL = '/admin/companies'
+ADMIN_COMPANIES_TEMPLATE = 'admin/admin_companies.html'
 
 
 @app.route('/admin/companies')
@@ -16,32 +17,38 @@ def admin_list_companies():
     companies = conn.execute("SELECT * FROM companies").fetchall()
     conn.close()
 
-    return render_template('admin/admin_companies.html', companies=companies)
+    return render_template(ADMIN_COMPANIES_TEMPLATE, companies=companies)
 
 
-@app.route('/admin/companies/add', methods=['GET', 'POST'])
+@app.get('/admin/companies/add')
+def show_admin_add_company_form():
+    if session.get('role') != 'admin':
+        return render_template(ERROR_403_TEMPLATE), 403
+
+    return render_template(ADMIN_COMPANIES_TEMPLATE)
+
+
+@app.post('/admin/companies/add')
 def admin_add_company():
     if session.get('role') != 'admin':
         return render_template(ERROR_403_TEMPLATE), 403
 
-    if request.method == 'POST':
-        company_name = request.form.get('company_name', '').strip()
-        description = request.form.get('description', '').strip()
-        owner = request.form.get('owner', '').strip()
+    company_name = request.form.get('company_name', '').strip()
+    description = request.form.get('description', '').strip()
+    owner = request.form.get('owner', '').strip()
 
-        if not company_name or not owner:
-            flash("All fields are required.", "danger")
-            return redirect(ADMIN_COMPANIES_URL)
+    if not company_name or not owner:
+        flash("All fields are required.", "danger")
+        return redirect(ADMIN_COMPANIES_URL)
 
-        conn = get_data_connection()
-
+    conn = get_data_connection()
+    try:
         existing_company = conn.execute(
             "SELECT id FROM companies WHERE name = ?",
             (company_name,)
         ).fetchone()
 
         if existing_company:
-            conn.close()
             flash("Company already exists. Please try with a different name.", "danger")
             return redirect(ADMIN_COMPANIES_URL)
 
@@ -50,12 +57,11 @@ def admin_add_company():
             (company_name, description, owner)
         )
         conn.commit()
+    finally:
         conn.close()
 
-        flash("Company created successfully.", "success")
-        return redirect(ADMIN_COMPANIES_URL)
-
-    return render_template('admin/admin_companies.html')
+    flash("Company created successfully.", "success")
+    return redirect(ADMIN_COMPANIES_URL)
 
 
 @app.route('/admin/companies/delete', methods=['POST'])

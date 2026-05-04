@@ -7,6 +7,8 @@ LOGIN_URL = '/login'
 HOME_URL = '/'
 COMPANIES_URL = '/companies'
 REGISTER_COMPANY_TEMPLATE = 'companies/register_company.html'
+ERROR_404_TEMPLATE = 'errors/404.html'
+ERROR_403_TEMPLATE = 'errors/403.html'
 
 
 @app.route('/')
@@ -102,7 +104,7 @@ def company_detail(company_id):
         ).fetchone()
 
         if not company:
-            return render_template('errors/404.html'), 404
+            return render_template(ERROR_404_TEMPLATE), 404
 
         comments = conn.execute(
             "SELECT * FROM comments WHERE company_id = ?",
@@ -154,7 +156,7 @@ def add_company_comment(company_id):
         ).fetchone()
 
         if not company:
-            return render_template('errors/404.html'), 404
+            return render_template(ERROR_404_TEMPLATE), 404
 
         conn.execute(
             "INSERT INTO comments (company_id, user, comment) VALUES (?, ?, ?)",
@@ -168,43 +170,48 @@ def add_company_comment(company_id):
     return redirect(f'/companies/{company_id}')
 
 
-@app.route('/companies/register', methods=['GET', 'POST'])
-def register_company():
+@app.get('/companies/register')
+def show_register_company_form():
     if session.get('role') != 'admin':
-        return render_template('errors/403.html'), 403
-
-    if request.method == 'POST':
-        company_name = request.form.get('company_name', '').strip()
-        description = request.form.get('description', '').strip()
-        owner = request.form.get('owner', session.get('username', '')).strip()
-
-        if not company_name or not owner:
-            flash("Company name and owner are required.", "danger")
-            return render_template(REGISTER_COMPANY_TEMPLATE)
-
-        conn = get_data_connection()
-        try:
-            existing_company = conn.execute(
-                "SELECT id FROM companies WHERE name = ?",
-                (company_name,)
-            ).fetchone()
-
-            if existing_company:
-                flash("Company already exists. Please try with a different name.", "danger")
-                return render_template(REGISTER_COMPANY_TEMPLATE)
-
-            conn.execute(
-                "INSERT INTO companies (name, description, owner) VALUES (?, ?, ?)",
-                (company_name, description, owner)
-            )
-            conn.commit()
-        finally:
-            conn.close()
-
-        flash("Company registered successfully.", "success")
-        return redirect(COMPANIES_URL)
+        return render_template(ERROR_403_TEMPLATE), 403
 
     return render_template(REGISTER_COMPANY_TEMPLATE)
+
+
+@app.post('/companies/register')
+def register_company():
+    if session.get('role') != 'admin':
+        return render_template(ERROR_403_TEMPLATE), 403
+
+    company_name = request.form.get('company_name', '').strip()
+    description = request.form.get('description', '').strip()
+    owner = request.form.get('owner', session.get('username', '')).strip()
+
+    if not company_name or not owner:
+        flash("Company name and owner are required.", "danger")
+        return render_template(REGISTER_COMPANY_TEMPLATE)
+
+    conn = get_data_connection()
+    try:
+        existing_company = conn.execute(
+            "SELECT id FROM companies WHERE name = ?",
+            (company_name,)
+        ).fetchone()
+
+        if existing_company:
+            flash("Company already exists. Please try with a different name.", "danger")
+            return render_template(REGISTER_COMPANY_TEMPLATE)
+
+        conn.execute(
+            "INSERT INTO companies (name, description, owner) VALUES (?, ?, ?)",
+            (company_name, description, owner)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    flash("Company registered successfully.", "success")
+    return redirect(COMPANIES_URL)
 
 
 @app.route('/companies/<int:company_id>/edit', methods=['GET', 'POST'])
@@ -220,10 +227,10 @@ def edit_company(company_id):
         ).fetchone()
 
         if not company:
-            return render_template('errors/404.html'), 404
+            return render_template(ERROR_404_TEMPLATE), 404
 
         if session.get('role') != 'admin' and session.get('username') != company['owner']:
-            return render_template('errors/403.html'), 403
+            return render_template(ERROR_403_TEMPLATE), 403
 
         if request.method == 'POST':
             new_name = request.form.get('company_name', '').strip()
