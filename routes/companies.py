@@ -11,6 +11,9 @@ EDIT_COMPANY_TEMPLATE = 'companies/edit_company.html'
 ERROR_404_TEMPLATE = 'errors/404.html'
 ERROR_403_TEMPLATE = 'errors/403.html'
 
+# Consultas SQL
+SELECT_COMPANY_BY_ID_QUERY = "SELECT * FROM companies WHERE id = ?"
+
 
 @app.route('/')
 def index():
@@ -100,7 +103,7 @@ def company_detail(company_id):
     conn = get_data_connection()
     try:
         company = conn.execute(
-            "SELECT * FROM companies WHERE id = ?",
+            SELECT_COMPANY_BY_ID_QUERY,
             (company_id,)
         ).fetchone()
 
@@ -223,7 +226,7 @@ def show_edit_company_form(company_id):
     conn = get_data_connection()
     try:
         company = conn.execute(
-            "SELECT * FROM companies WHERE id = ?",
+            SELECT_COMPANY_BY_ID_QUERY,
             (company_id,)
         ).fetchone()
 
@@ -246,7 +249,7 @@ def update_company(company_id):
     conn = get_data_connection()
     try:
         company = conn.execute(
-            "SELECT * FROM companies WHERE id = ?",
+            SELECT_COMPANY_BY_ID_QUERY,
             (company_id,)
         ).fetchone()
 
